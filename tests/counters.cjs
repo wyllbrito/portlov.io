@@ -1,0 +1,13 @@
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+const html=fs.readFileSync('index.html.html','utf8');
+const source=html.slice(html.indexOf('function counterSnapshot('),html.indexOf('function renderDreams('));const context=vm.createContext({Date,Number,Math});vm.runInContext(source,context);
+const since=context.counterSnapshot('2026-10-19',new Date(2026,9,20,2,3,4));
+assert.deepEqual([since.totalDays,since.days,since.hours,since.minutes,since.seconds,since.future],[1,1,2,3,4,false]);
+const until=context.counterSnapshot('2026-10-21',new Date(2026,9,20,20,56,54));assert.deepEqual([until.totalDays,until.days,until.hours,until.minutes,until.seconds,until.future],[0,0,3,3,6,true]);
+const month=context.counterSnapshot('2026-01-31',new Date(2026,1,28));assert.deepEqual([month.months,month.days,month.hours],[1,0,0]);
+const leap=context.counterSnapshot('2024-02-29',new Date(2025,1,28));assert.deepEqual([leap.years,leap.months,leap.days],[1,0,0]);
+const exact=context.counterSnapshot('2026-10-20',new Date(2026,9,20));assert.equal(exact.totalDays+exact.hours+exact.minutes+exact.seconds,0);
+assert.equal(context.counterSnapshot('bad'),null);
+assert(!/protótipo|prototipo|demonstração|simular|experiência planejada|versão completa/i.test(html),'No obsolete product copy');
+for(const m of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi))new vm.Script(m[1]);
+console.log('OK: elapsed/countdown seconds, month ends, leap year, exact date, invalid dates, product copy and script syntax.');

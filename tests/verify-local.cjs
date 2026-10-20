@@ -1,5 +1,5 @@
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
-const html=fs.readFileSync('portloviooo.html','utf8');
+const html=fs.readFileSync('index.html.html','utf8');
 const scripts=[...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)].map(m=>m[1]);
 scripts.forEach((source,i)=>new vm.Script(source,{filename:`inline-${i+1}.js`}));
 function declaration(name){const start=html.indexOf(`function ${name}(`);assert(start>=0,name);const rest=html.slice(start);for(const end of rest.matchAll(/\n\s*}/g)){const candidate=rest.slice(0,end.index+end[0].length);try{new vm.Script(candidate);return candidate}catch{}}throw Error('Cannot extract '+name)}

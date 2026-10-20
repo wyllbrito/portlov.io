@@ -43,7 +43,7 @@ async function run(){
  ws.onmessage=event=>{const m=JSON.parse(event.data);if(m.id){const p=pending.get(m.id);pending.delete(m.id);if(m.error)p.reject(Error(m.error.message));else p.resolve(m.result)}else if(m.method==='Runtime.exceptionThrown')errors.push(m.params.exceptionDetails.exception?.description||m.params.exceptionDetails.text)};
  await send('Page.enable');await send('Runtime.enable');await send('Emulation.setDeviceMetricsOverride',{width:1280,height:900,deviceScaleFactor:1,mobile:false});
  await send('Page.addScriptToEvaluateOnNewDocument',{source:`window.__audioEvents=[];const NativeAudio=window.AudioContext;window.AudioContext=class extends NativeAudio{constructor(...a){super(...a);window.__lastAudio=this;const create=this.createOscillator.bind(this);this.createOscillator=()=>{const v=create();const start=v.start.bind(v);v.start=(t)=>{window.__audioEvents.push({frequency:v.frequency.value,start:t});return start(t)};return v}}};window.print=()=>{window.__printCalled=true};`});
- const url='http://127.0.0.1:'+server.address().port+'/portloviooo.html';await send('Page.navigate',{url});
+ const url='http://127.0.0.1:'+server.address().port+'/index.html.html';await send('Page.navigate',{url});
  for(let i=0;i<80;i++){if(await evaluate(`!!document.querySelector('#onboarding[open]')`))break;await sleep(100)}
  check('Onboarding opens',await evaluate(`document.querySelector('#onboarding').open`));
  await setValue('[name=nameA]','Alex');await evaluate(`document.querySelector('#onboardingForm').requestSubmit()`);await sleep(140);
@@ -110,7 +110,7 @@ async function run(){
  check('Examples updated',await evaluate(`document.querySelector('.catalog').textContent.includes('Ir ao mercado')&&document.querySelector('.catalog').textContent.includes('Assistir um filme')&&!document.querySelector('.catalog').textContent.includes('Nosso som')`));
  await screenshot('catalog-dark');await close();
  // Action wiring audit records which buttons have handlers; runtime workflows above test effects.
- const source=fs.readFileSync('portloviooo.html','utf8');const handlerSource=[...source.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)].map(m=>m[1]).join('\n');
+ const source=fs.readFileSync('index.html.html','utf8');const handlerSource=[...source.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)].map(m=>m[1]).join('\n');
  const handlers=new Set(['drag-widget',...[...handlerSource.matchAll(/\bcase\s*['"]([^'"]+)['"]\s*:/g)].map(m=>m[1]),...[...handlerSource.matchAll(/(?:action|dataset\.action)\s*===?\s*['"]([^'"]+)['"]/g)].map(m=>m[1])]);
  const actions=await evaluate(`[...new Set([...document.querySelectorAll('[data-action]')].map(e=>e.dataset.action))]`);const wiring=actions.filter(a=>!handlers.has(a));
  check('Visible buttons have registered action handlers',wiring.length===0);
@@ -132,7 +132,7 @@ async function run(){
  check('Widget can be added from catalog',await evaluate(`state.slots.filter(Boolean).length===${countWidgets+1}`));await close();
  const added=await evaluate(`state.slots.filter(w=>w?.type==='text').at(-1).id`);await evaluate(`document.querySelector('[data-action="remove-widget"][data-id="${added}"]').click()`);await sleep(100);await click('[data-action=confirm-remove]');
  check('Widget removal confirms and removes only chosen widget',await evaluate(`state.slots.filter(Boolean).length===${countWidgets}&&!getWidget('${added}')`));
- await evaluate(`showInstall()`);await click('[data-action=simulate-install]');check('Installation demo updates preview',await evaluate(`state.installedDemo&&!document.querySelector('#homeInstalled').hidden`));await close();
+ await evaluate(`showInstall()`);check('Home screen guidance shows actual browser steps',await evaluate(`document.querySelector('#dialogBody').textContent.includes('Safari')&&!document.querySelector('[data-action=simulate-install]')`));await close();
  await evaluate(`showPrivacy()`);check('Privacy dialog opens',await evaluate(`document.querySelector('#dialog').open`));await close();
  const modalReports=[];
  for(const palette of ['paixao','natureza','lealdade'])for(const dark of [false,true]){
